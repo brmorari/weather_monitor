@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:weather_monitor/services/get_weather.dart';
 import 'package:weather_monitor/widgets/weather_card.dart';
 
-class WeatherList extends StatefulWidget {
+class WeatherListPage extends StatefulWidget {
   const new({super.key});
 
   @override
-  State<WeatherList> createState() => _WeatherListState();
+  State<WeatherListPage> createState() => _WeatherListPageState();
 }
 
-class _WeatherListState extends State<WeatherList> {
+class _WeatherListPageState extends State<WeatherListPage> {
+  final TextEditingController _cityController = TextEditingController();
+  final List _cities = [];
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -33,11 +37,14 @@ class _WeatherListState extends State<WeatherList> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(25, 30, 25, 40),
                 child: TextField(
+                  controller: _cityController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'Adicionar cidade',
                     suffixIcon: IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _getCurrentWeather();
+                      },
                       icon: Icon(Icons.search),
                     ),
                   ),
@@ -46,21 +53,17 @@ class _WeatherListState extends State<WeatherList> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(15, 10, 15, 50),
-                  child: ListView(
-                    children: [
-                      WeatherCard(
-                        cityName: 'São Paulo',
-                        weatherCity: 'Ensolarado',
-                        temperature: 25,
-                        weatherIcons: WeatherCard.weatherIcons['Ensolarado'],
-                      ),
-                      WeatherCard(
-                        cityName: 'Campinas',
-                        weatherCity: 'Chuvoso',
-                        temperature: 14,
-                        weatherIcons: WeatherCard.weatherIcons['Chuvoso'],
-                      ),
-                    ],
+                  child: ListView.builder(
+                    itemCount: _cities.length,
+                    itemBuilder: (context, index) {
+                      final informations = _cities[index];
+                      return WeatherCard(
+                        cityName: informations['location']['name'],
+                        weatherCity:
+                            informations['current']['condition']['text'],
+                        temperature: informations['current']['temp_c'],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -69,5 +72,17 @@ class _WeatherListState extends State<WeatherList> {
         ),
       ),
     );
+  }
+
+  Future<void> _getCurrentWeather() async {
+    try {
+      final response = await getWeather(_cityController.text);
+      setState(() {
+        _cities.add(response);
+      });
+      _cityController.clear();
+    } catch (e) {
+      print('Erro: $e');
+    }
   }
 }

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../screens/weather_details.dart';
+
 class WeatherCard extends StatelessWidget {
   final String cityName;
   final String weatherCity;
-  final int temperature;
+  final double temperature;
 
   const new({
     super.key,
     required this.cityName,
     required this.weatherCity,
     required this.temperature,
-    required weatherIcons,
+    // required weatherIcons,
   });
 
   static Map<String, IconData> weatherIcons = {
@@ -26,21 +28,33 @@ class WeatherCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsetsGeometry.only(top: 5),
       child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: ListTile(
-                  title: Text(cityName),
-                  subtitle: Text(weatherCity),
-                ),
+        clipBehavior: .hardEdge,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => WeatherDetailsPage(city: cityName),
               ),
-              Icon(weatherIcons[weatherCity]),
-              SizedBox(width: 25),
-              Text('$temperature° Graus'),
-              SizedBox(width: 15),
-            ],
+            );
+          },
+          splashColor: Colors.blue.withAlpha(30),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ListTile(
+                    title: Text(cityName),
+                    subtitle: Text(weatherCity),
+                  ),
+                ),
+                Icon(weatherIcons[weatherCity]),
+                SizedBox(width: 25),
+                Text('$temperature °C'),
+                SizedBox(width: 15),
+              ],
+            ),
           ),
         ),
       ),
