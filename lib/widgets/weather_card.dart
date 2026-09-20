@@ -6,22 +6,19 @@ class WeatherCard extends StatelessWidget {
   final String cityName;
   final String weatherCity;
   final double temperature;
+  final String iconLink;
 
-  const new({
+  new({
     super.key,
     required this.cityName,
     required this.weatherCity,
     required this.temperature,
-    // required weatherIcons,
+    required this.iconLink,
   });
 
-  static Map<String, IconData> weatherIcons = {
-    'Ensolarado': Icons.wb_sunny,
-    'Chuvoso': Icons.thunderstorm,
-    'Chuva': Icons.beach_access,
-    'Nublado': Icons.cloud,
-    'Parcialmente_nublado': Icons.cloud_queue,
-  };
+  late String formatedIconLink = iconLink.startsWith('//')
+      ? 'https:$iconLink'
+      : iconLink;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +46,11 @@ class WeatherCard extends StatelessWidget {
                     subtitle: Text(weatherCity),
                   ),
                 ),
-                Icon(weatherIcons[weatherCity]),
+                SizedBox(
+                  width: 35,
+                  height: 35,
+                  child: Image.network(formatedIconLink, fit: BoxFit.contain),
+                ),
                 SizedBox(width: 25),
                 Text('$temperature °C'),
                 SizedBox(width: 15),

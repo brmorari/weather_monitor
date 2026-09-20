@@ -12,6 +12,7 @@ class WeatherListPage extends StatefulWidget {
 class _WeatherListPageState extends State<WeatherListPage> {
   final TextEditingController _cityController = TextEditingController();
   final List _cities = [];
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,36 +38,68 @@ class _WeatherListPageState extends State<WeatherListPage> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(25, 30, 25, 40),
                 child: TextField(
+                  enabled: !isLoading,
                   controller: _cityController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'Adicionar cidade',
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        _getCurrentWeather();
-                      },
-                      icon: Icon(Icons.search),
+                    suffixIcon: isLoading == true
+                        ? Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: SizedBox(
+                              width: 8,
+                              height: 8,
+                              child: CircularProgressIndicator(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        : IconButton(
+                            onPressed: _getCurrentWeather,
+                            icon: Icon(Icons.search),
+                          ),
+                  ),
+                ),
+              ),
+              _cities.isEmpty
+                  ? Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 75),
+                            child: Text(
+                              textAlign: TextAlign.center,
+                              'Adicione uma cidade para monitorar a temperatura.',
+                            ),
+                          ),
+                          SizedBox(height: 250),
+                        ],
+                      ),
+                    )
+                  : Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 50),
+                        child: RefreshIndicator(
+                          onRefresh: _getCurrentWeather,
+                          child: ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: _cities.length,
+                            itemBuilder: (context, index) {
+                              final informations = _cities[index];
+                              return WeatherCard(
+                                cityName: informations['location']['name'],
+                                weatherCity:
+                                    informations['current']['condition']['text'],
+                                temperature: informations['current']['temp_c'],
+                                iconLink:
+                                    informations['current']['condition']['icon'],
+                              );
+                            },
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 10, 15, 50),
-                  child: ListView.builder(
-                    itemCount: _cities.length,
-                    itemBuilder: (context, index) {
-                      final informations = _cities[index];
-                      return WeatherCard(
-                        cityName: informations['location']['name'],
-                        weatherCity:
-                            informations['current']['condition']['text'],
-                        temperature: informations['current']['temp_c'],
-                      );
-                    },
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -76,13 +109,23 @@ class _WeatherListPageState extends State<WeatherListPage> {
 
   Future<void> _getCurrentWeather() async {
     try {
+      setState(() {
+        isLoading = true;
+      });
+
       final response = await getWeather(_cityController.text);
+
       setState(() {
         _cities.add(response);
       });
+
       _cityController.clear();
     } catch (e) {
       print('Erro: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 }
