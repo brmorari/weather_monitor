@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:weather_monitor/services/get_weather.dart';
+import 'package:weather_monitor/services/current_weather.dart';
 import 'package:weather_monitor/widgets/weather_card.dart';
 
 class WeatherListPage extends StatefulWidget {
@@ -55,7 +57,9 @@ class _WeatherListPageState extends State<WeatherListPage> {
                             ),
                           )
                         : IconButton(
-                            onPressed: _getCurrentWeather,
+                            onPressed: () {
+                              _getCurrentInformations(_cityController.text);
+                            },
                             icon: Icon(Icons.search),
                           ),
                   ),
@@ -81,19 +85,17 @@ class _WeatherListPageState extends State<WeatherListPage> {
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(15, 10, 15, 50),
                         child: RefreshIndicator(
-                          onRefresh: _getCurrentWeather,
+                          onRefresh: _getRefreshInformations,
                           child: ListView.builder(
                             physics: const AlwaysScrollableScrollPhysics(),
                             itemCount: _cities.length,
                             itemBuilder: (context, index) {
                               final informations = _cities[index];
                               return WeatherCard(
-                                cityName: informations['location']['name'],
-                                weatherCity:
-                                    informations['current']['condition']['text'],
-                                temperature: informations['current']['temp_c'],
-                                iconLink:
-                                    informations['current']['condition']['icon'],
+                                cityName: informations['cityName'],
+                                weatherCity: informations['weatherCity'],
+                                temperature: informations['temperature'],
+                                iconLink: informations['iconLink'],
                               );
                             },
                           ),
@@ -107,25 +109,62 @@ class _WeatherListPageState extends State<WeatherListPage> {
     );
   }
 
-  Future<void> _getCurrentWeather() async {
+  Future<void> _getCurrentInformations(String city) async {
     try {
       setState(() {
         isLoading = true;
       });
+      final response = await getCurrentWeather(city);
 
-      final response = await getWeather(_cityController.text);
+      var currentInformations = {
+        "cityName": response['location']['name'],
+        "weatherCity": response['current']['condition']['text'],
+        "temperature": response['current']['temp_c'],
+        "iconLink": response['current']['condition']['icon'],
+      };
 
       setState(() {
-        _cities.add(response);
+        _cities.add(currentInformations);
       });
-
       _cityController.clear();
     } catch (e) {
-      print('Erro: $e');
+      print('Error: $e');
     } finally {
       setState(() {
         isLoading = false;
       });
     }
+  }
+
+  Future<dynamic> _fetchCurrentInformations(String city) async {
+    try {
+      final response = await getCurrentWeather(city);
+      return response;
+    } catch (e) {
+      print('Error: $e');
+      return null;
+    }
+  }
+
+  Future<void> _getRefreshInformations() async {
+    if (_cities.isEmpty) return;
+
+    final refreshCity = await Future.wait(
+      _cities.map((city) => _fetchCurrentInformations(city['cityName'])),
+    );
+
+    setState(() {
+      for (var i = 0; i < _cities.length; i++) {
+        final response = refreshCity[i];
+        if (refreshCity[i] != null) {
+          _cities[i] = {
+            "cityName": response['location']['name'],
+            "weatherCity": response['current']['condition']['text'],
+            "temperature": response['current']['temp_c'],
+            "iconLink": response['current']['condition']['icon'],
+          };
+        }
+      }
+    });
   }
 }

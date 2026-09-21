@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../screens/weather_details.dart';
 
-class WeatherCard extends StatelessWidget {
+class WeatherCard extends StatefulWidget {
   final String cityName;
   final String weatherCity;
   final double temperature;
   final String iconLink;
 
-  new({
+  const new({
     super.key,
     required this.cityName,
     required this.weatherCity,
@@ -16,9 +16,14 @@ class WeatherCard extends StatelessWidget {
     required this.iconLink,
   });
 
-  late String formatedIconLink = iconLink.startsWith('//')
-      ? 'https:$iconLink'
-      : iconLink;
+  @override
+  State<WeatherCard> createState() => _WeatherCardState();
+}
+
+class _WeatherCardState extends State<WeatherCard> {
+  late String formatedIconLink = widget.iconLink.startsWith('//')
+      ? 'https:${widget.iconLink}'
+      : widget.iconLink;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +36,7 @@ class WeatherCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => WeatherDetailsPage(city: cityName),
+                builder: (context) => WeatherDetailsPage(city: widget.cityName),
               ),
             );
           },
@@ -42,8 +47,8 @@ class WeatherCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: ListTile(
-                    title: Text(cityName),
-                    subtitle: Text(weatherCity),
+                    title: Text(widget.cityName),
+                    subtitle: Text(widget.weatherCity),
                   ),
                 ),
                 SizedBox(
@@ -52,7 +57,7 @@ class WeatherCard extends StatelessWidget {
                   child: Image.network(formatedIconLink, fit: BoxFit.contain),
                 ),
                 SizedBox(width: 25),
-                Text('$temperature °C'),
+                Text('${widget.temperature} °C'),
                 SizedBox(width: 15),
               ],
             ),
