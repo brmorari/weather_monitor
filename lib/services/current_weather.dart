@@ -14,5 +14,5 @@ Future<Map<String, dynamic>> getCurrentWeather(String city) async {
     final data = jsonDecode(response.body);
     return data;
   }
-  throw Exception('Erro ao buscar universidade');
+  throw Exception('Erro ao buscar uma cidade');
 }

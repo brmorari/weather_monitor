@@ -2,28 +2,26 @@ import 'package:flutter/material.dart';
 
 import '../screens/weather_details.dart';
 
-class WeatherCard extends StatefulWidget {
+class WeatherCard extends StatelessWidget {
   final String cityName;
   final String weatherCity;
   final double temperature;
   final String iconLink;
+  final int humidity;
+  final double wind;
 
-  const new({
+  const WeatherCard({
     super.key,
     required this.cityName,
     required this.weatherCity,
     required this.temperature,
     required this.iconLink,
+    required this.humidity,
+    required this.wind,
   });
 
-  @override
-  State<WeatherCard> createState() => _WeatherCardState();
-}
-
-class _WeatherCardState extends State<WeatherCard> {
-  late String formatedIconLink = widget.iconLink.startsWith('//')
-      ? 'https:${widget.iconLink}'
-      : widget.iconLink;
+  String get formatedIconLink =>
+      iconLink.startsWith('//') ? 'https:$iconLink' : iconLink;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +34,14 @@ class _WeatherCardState extends State<WeatherCard> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => WeatherDetailsPage(city: widget.cityName),
+                builder: (context) => WeatherDetailsPage(
+                  city: cityName,
+                  weatherCity: weatherCity,
+                  temperature: temperature,
+                  iconLink: formatedIconLink,
+                  wind: wind,
+                  humidity: humidity,
+                ),
               ),
             );
           },
@@ -47,8 +52,8 @@ class _WeatherCardState extends State<WeatherCard> {
               children: [
                 Expanded(
                   child: ListTile(
-                    title: Text(widget.cityName),
-                    subtitle: Text(widget.weatherCity),
+                    title: Text(cityName),
+                    subtitle: Text(weatherCity),
                   ),
                 ),
                 SizedBox(
@@ -57,7 +62,7 @@ class _WeatherCardState extends State<WeatherCard> {
                   child: Image.network(formatedIconLink, fit: BoxFit.contain),
                 ),
                 SizedBox(width: 25),
-                Text('${widget.temperature} °C'),
+                Text('$temperature °C'),
                 SizedBox(width: 15),
               ],
             ),
